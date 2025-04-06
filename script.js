@@ -93,6 +93,7 @@ function manageOutput() {
 function GameController() {
     // Calls Grid functions and builds 2D grid
     const board = Grid();
+    const maxScore = 5;
 
     // Assigns players to either X or O 
     let players = [
@@ -131,8 +132,8 @@ function GameController() {
 
     // Process player name form submission
     const startGame = () => {
-        const player1 = document.getElementById('p1-name').value;
-        const player2 = document.getElementById('p2-name').value;
+        const player1 = document.getElementById('p1-name').value.trim();
+        const player2 = document.getElementById('p2-name').value.trim();
 
         players[0].name = player1;
         players[1].name = player2;
@@ -165,17 +166,22 @@ function GameController() {
 
         printNewRound();
         updateTurnDisplay();
-        winDisplay.textContent = '';
     }
 
     // Resets game, names, and eventually scores
     const resetGame = () => {
         players[0].name = '';
         players[1].name = '';
+        players[0].score = 0;
+        players[1].name = 0;
+
+        const boardElement = document.querySelector('.board');
+        boardElement.style.pointerEvents = 'auto';
 
         document.getElementById('player-entry').style.display = 'block';
         document.getElementById('board').style.display = 'none';
 
+        updateScoreDisplay();
         restartGame();
     }
 
@@ -203,20 +209,14 @@ function GameController() {
             const winnerName = winner.name || winner.identity;
             
             winner.score = (winner.score || 0) + 1;
-            
             updateScoreDisplay();
+            
+            if (winner.score >= maxScore) {
+                displayMatchWinner(winner);
+                return;
+            }
 
             displayRoundWinner(gameStatus);
-            return;
-
-            // if (winner.score <= 5) {
-            //     // finalScore();
-            //     restartGame();
-            // } else {
-            //     displayRoundWinner(winnerName);
-            // }
-
-            // return;
         }
         else if (gameStatus.status === 'draw') {
             displayRoundWinner(gameStatus);
@@ -250,14 +250,27 @@ function GameController() {
         if (gameStatus.status === 'win') {
             const winner = players.find(p => p.identity === gameStatus.winner);
             const winnerName = winner.name || winner.identity;
-            winDisplay.textContent = `${winnerName} wins this round!`
-        } else if (gameStatus === 'draw') {
+            winDisplay.textContent = `${winnerName} wins this round!`;
+        } else if (gameStatus.status === 'draw') {
             winDisplay.textContent = `It's a draw... No points`;
         } else {
             return;
         }
 
         winElement.appendChild(winDisplay);
+    }
+
+    const displayMatchWinner = (winner) => {
+        const winElement = document.querySelector('.win-condition');
+        winElement.innerHTML = '';
+
+        const winDisplay = document.createElement('div');
+        winDisplay.textContent = `${winner.name || winner.identity} wins the match! 🏆`
+
+        winElement.appendChild(winDisplay);
+
+        const boardElement = document.querySelector('.board');
+        boardElement.style.pointerEvents = 'none';
     }
 
     const initFormListener = () => {
@@ -338,7 +351,6 @@ function initGame() {
     window.GameControllerInstance = GameController()
     GameControllerInstance.printNewRound();
     GameControllerInstance.initFormListener();
-    GameControllerInstance.updateTurnDisplay();
     manageOutput();
 }
 
