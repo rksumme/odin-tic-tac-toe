@@ -165,6 +165,7 @@ function GameController() {
 
         printNewRound();
         updateTurnDisplay();
+        winDisplay.textContent = '';
     }
 
     // Resets game, names, and eventually scores
@@ -205,16 +206,20 @@ function GameController() {
             
             updateScoreDisplay();
 
-            if (winner.score <= 5) {
-                // finalScore();
-                restartGame();
-            } else {
-                resetGame();
-            }
-
+            displayRoundWinner(gameStatus);
             return;
+
+            // if (winner.score <= 5) {
+            //     // finalScore();
+            //     restartGame();
+            // } else {
+            //     displayRoundWinner(winnerName);
+            // }
+
+            // return;
         }
         else if (gameStatus.status === 'draw') {
+            displayRoundWinner(gameStatus);
             return;
         }
 
@@ -234,6 +239,25 @@ function GameController() {
             player2Score.textContent = `${players[1].name || "Player O"}: ${players[1].score}`;
             scoreElement.appendChild(player2Score);
         }
+    }
+
+    const displayRoundWinner = (gameStatus) => {
+        const winElement = document.querySelector('.win-condition');
+        winElement.innerHTML = '';
+
+        const winDisplay = document.createElement('div');
+
+        if (gameStatus.status === 'win') {
+            const winner = players.find(p => p.identity === gameStatus.winner);
+            const winnerName = winner.name || winner.identity;
+            winDisplay.textContent = `${winnerName} wins this round!`
+        } else if (gameStatus === 'draw') {
+            winDisplay.textContent = `It's a draw... No points`;
+        } else {
+            return;
+        }
+
+        winElement.appendChild(winDisplay);
     }
 
     const initFormListener = () => {
