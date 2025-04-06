@@ -65,36 +65,112 @@ function Cell() {
     return {addValue, getValue};
 }
 
+// Manages DOM elements added 
+function manageOutput() {
+    playerFunctions = GameController();
+
+    const optionsElement = document.querySelector('.game-options');
+    optionsElement.innerHTML = '';
+    const restartBtn = document.createElement('button');
+    restartBtn.textContent = "Restart Round";
+    const resetBtn = document.createElement('button');
+    resetBtn.textContent = "Reset Game";
+    optionsElement.appendChild(restartBtn)
+    optionsElement.appendChild(resetBtn);
+
+    // Event listeners for added buttons
+    restartBtn.addEventListener('click', () => {
+        GameControllerInstance.restartGame();
+    });
+
+    resetBtn.addEventListener('click', () => {
+        GameControllerInstance.resetGame();
+    })
+}
+
 // Controls overall flow of the game
-function GameController(playerOne="Player One", playerTwo = "Player Two") {
+function GameController() {
     // Calls Grid functions and builds 2D grid
     const board = Grid();
 
     // Assigns players to either X or O 
-    const players = [
+    let players = [
         {
-            name: playerOne,
-            identity: "X"
+            name: '',
+            identity: "X",
+            index: 0
         },
         {
-            name: playerTwo,
-            identity: "O"
+            name: '',
+            identity: "O",
+            index: 1
         }
     ];
 
     // Player X goes first
     let activePlayer = players[0];
 
+    // Updates turn display with current player
+    const updateTurnDisplay = () => {
+        const turnElement = document.querySelector('.turn-keeper');
+        if (turnElement) {
+            turnElement.innerHTML = '';
+            const turnKeeper = document.createElement('h3');
+            turnKeeper.classList.add('turn-title');
+            
+            const displayName = activePlayer.name || activePlayer.identity;
+            turnKeeper.textContent = `${displayName}'s turn`;
+            turnElement.appendChild(turnKeeper);
+        }
+    };
+
+    // Process player name form submission
+    const startGame = () => {
+        const player1 = document.getElementById('p1-name').value;
+        const player2 = document.getElementById('p2-name').value;
+
+        players[0].name = player1;
+        players[1].name = player2;
+
+        document.getElementById('player-entry').style.display = 'none';
+
+        updateTurnDisplay();
+    }
+
     // Changes player from current to the other
     const switchTurn = () => {
         activePlayer = activePlayer === players[0] ? players[1] : players[0];
+        updateTurnDisplay();
     };
+
     // Allows other functions to access the current player
     const getActivePlayer = () => activePlayer;
 
     // Updates grid with player's choice
     const printNewRound = () => {
         board.printGrid();
+    }
+
+    // Restart game, but keep player names (and eventually scores)
+    const restartGame = () => {
+        const newBoard = Grid();
+        Object.assign(board, newBoard);
+
+        activePlayer = players[0];
+
+        printNewRound();
+        updateTurnDisplay();
+    }
+
+    // Resets game, names, and eventually scores
+    const resetGame = () => {
+        players[0].name = '';
+        players[1].name = '';
+
+        document.getElementById('player-entry').style.display = 'block';
+        document.getElementById('board').style.display = 'none';
+
+        restartGame();
     }
 
     // Controls how player makes choice in the game
@@ -110,26 +186,45 @@ function GameController(playerOne="Player One", playerTwo = "Player Two") {
         // Assigns value based on player identity
         currentBoard[row][columns].addValue(activePlayer.identity);
 
+        // Updates board with player's choice
+        printNewRound();
+
         // Checks win conditions
         const gameStatus = checkGameStatus(board);
 
         if (gameStatus.status === 'win') {
-            printNewRound();
-            console.log(`${gameStatus.winner} wins!`);
+            const winner = players.find(p => p.identity === gameStatus.winner);
+            const winnerName = winner.name || winner.identity;
             return;
         }
         else if (gameStatus.status === 'draw') {
-            printNewRound();
-            console.log("It's a draw!");
             return;
         }
 
-        // Changes players
         switchTurn();
-        // Updates board with players choice
-        printNewRound();
     }
-    return {getActivePlayer, printNewRound, playRound}
+
+    const initFormListener = () => {
+        const form = document.getElementById('player-entry');
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                startGame();
+            });
+        } else {
+            console.error('Try again stinky')
+        }
+    }
+
+    return {
+        getActivePlayer,
+        printNewRound,
+        playRound,
+        initFormListener,
+        restartGame,
+        resetGame,
+        updateTurnDisplay
+    };
 }
 
 function checkGameStatus(board) {
@@ -182,8 +277,11 @@ function checkGameStatus(board) {
 // Initializes the game in the window and starts a round
 function initGame() {
     console.log("Game initializing...")
-    window.GameControllerInstance = GameController("Player X", "Player O")
+    window.GameControllerInstance = GameController()
     GameControllerInstance.printNewRound();
+    GameControllerInstance.initFormListener();
+    GameControllerInstance.updateTurnDisplay();
+    manageOutput();
 }
 
 // Starts game when page is loaded
