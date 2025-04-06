@@ -68,6 +68,7 @@ function Cell() {
 // Manages DOM elements added 
 function manageOutput() {
     playerFunctions = GameController();
+    players = playerFunctions.getPlayers();
 
     const optionsElement = document.querySelector('.game-options');
     optionsElement.innerHTML = '';
@@ -75,7 +76,7 @@ function manageOutput() {
     restartBtn.textContent = "Restart Round";
     const resetBtn = document.createElement('button');
     resetBtn.textContent = "Reset Game";
-    optionsElement.appendChild(restartBtn)
+    optionsElement.appendChild(restartBtn);
     optionsElement.appendChild(resetBtn);
 
     // Event listeners for added buttons
@@ -98,14 +99,18 @@ function GameController() {
         {
             name: '',
             identity: "X",
-            index: 0
+            index: 0,
+            score: 0
         },
         {
             name: '',
             identity: "O",
-            index: 1
+            index: 1,
+            score: 0
         }
     ];
+
+    const getPlayers = () => players;
 
     // Player X goes first
     let activePlayer = players[0];
@@ -195,6 +200,18 @@ function GameController() {
         if (gameStatus.status === 'win') {
             const winner = players.find(p => p.identity === gameStatus.winner);
             const winnerName = winner.name || winner.identity;
+            
+            winner.score = (winner.score || 0) + 1;
+            
+            updateScoreDisplay();
+
+            if (winner.score <= 5) {
+                // finalScore();
+                restartGame();
+            } else {
+                resetGame();
+            }
+
             return;
         }
         else if (gameStatus.status === 'draw') {
@@ -202,6 +219,21 @@ function GameController() {
         }
 
         switchTurn();
+    }
+
+    const updateScoreDisplay = () => {
+        const scoreElement = document.querySelector('.score-keeper');
+        if (scoreElement) {
+            scoreElement.innerHTML = '';
+
+            const player1Score = document.createElement('p');
+            player1Score.textContent = `${players[0].name || "Player X"}: ${players[0].score}`;
+            scoreElement.appendChild(player1Score);
+
+            const player2Score = document.createElement('p');
+            player2Score.textContent = `${players[1].name || "Player O"}: ${players[1].score}`;
+            scoreElement.appendChild(player2Score);
+        }
     }
 
     const initFormListener = () => {
@@ -217,13 +249,15 @@ function GameController() {
     }
 
     return {
+        getPlayers,
         getActivePlayer,
         printNewRound,
         playRound,
         initFormListener,
         restartGame,
         resetGame,
-        updateTurnDisplay
+        updateTurnDisplay,
+        updateScoreDisplay
     };
 }
 
