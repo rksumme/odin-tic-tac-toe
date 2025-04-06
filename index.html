@@ -8,8 +8,31 @@
 </head>
 <body>
     <h1 class="title">Tic-Tac-Toe</h1>
+    <form class="player-entry">
+        <div class="entry-line">
+            <label for="p1-name" class="p1">Enter Player 1 (X) name: </label>
+            <input type="text" id="p1-name">
+        </div>
+        <div class="entry-line">
+            <label for="p2-name" class="p2">Enter Player 2 (O) name: </label>
+            <input type="text" id="p2-name">
+        </div>
+        <button type="submit">Start Game</button>
+    </form>
+    <div class="turn-keeper">
+        <!-- JS inputs players turn here -->
+    </div>
     <div class="board">
-        <!-- JS inputs cells here -->
+        <!-- JS inputs grid here -->
+    </div>
+    <div class="game-options">
+        <!-- JS inputs buttons here -->
+    </div>
+    <div class="win-condition">
+        <!-- JS inputs box with win condition here -->
+    </div>
+    <div class="score-keeper">
+        <!-- JS inputs scores divs here -->
     </div>
 
     <script src="script.js"></script>

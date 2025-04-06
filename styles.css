@@ -1,9 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=DotGothic16&display=swap');
+
+:root {
+    --dark: #0a0912;
+    --accent: #70579c;
+    --neutral: #e096a8;
+    --light: #fff1eb;
+}
+
 html, body {
     height: 100%;
     width: 100%;
     margin: 0;
     padding: 0;
-    background-color: aquamarine;
+    background-color: var(--light);
+    font-family: 'DotGothic16', Helvetica, sans-serif;
 }
 
 .board {
