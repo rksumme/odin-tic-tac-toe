@@ -1,0 +1,7 @@
+Functions to edit:
+- Replace form entry with turn keeper on submit click
+- Prevent game start without player names
+    Remove code to allow for players to be identified by identity
+- Change UI to indicate to player's  to press "restart round" (new round?) after a round is over
+- Add game winner/congratulations screen (pop-up?)
+- Format buttons

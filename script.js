@@ -18,6 +18,10 @@ function Grid() {
     const printGrid = () => {
         const boardElement = document.querySelector('.board');
         boardElement.innerHTML = '';
+        boardElement.classList.add('disabled');
+
+        winElement = document.querySelector('.win-condition');
+        winElement.style.display = 'none';
 
         board.forEach((row, rowIndex) => {
             const rowElement = document.createElement('div');
@@ -28,12 +32,7 @@ function Grid() {
                 cellElement.classList.add('cell');
                 cellElement.dataset.row = rowIndex;
                 cellElement.dataset.col = colIndex;
-                if (cell.getValue() === 1) {
-                    cellElement.textContent = '';
-                }
-                else if (cell.getValue() !== 1) {
-                    cellElement.textContent = cell.getValue();
-                }
+                cellElement.textContent = cell.getValue() === 1 ? '' : cell.getValue();
                 
                 cellElement.addEventListener('click', () => {
                     GameControllerInstance.playRound(rowIndex, colIndex);
@@ -67,21 +66,21 @@ function Cell() {
 
 // Manages DOM elements added 
 function manageOutput() {
-    playerFunctions = GameController();
-    players = playerFunctions.getPlayers();
-
     const optionsElement = document.querySelector('.game-options');
     optionsElement.innerHTML = '';
     const restartBtn = document.createElement('button');
     restartBtn.textContent = "Restart Round";
     const resetBtn = document.createElement('button');
     resetBtn.textContent = "Reset Game";
+    const overlay = document.createElement('div');
+    overlay.textContent = "Please enter player names to begin";
+
     optionsElement.appendChild(restartBtn);
     optionsElement.appendChild(resetBtn);
 
     // Event listeners for added buttons
     restartBtn.addEventListener('click', () => {
-        GameControllerInstance.restartGame();
+        GameControllerInstance.startRound();
     });
 
     resetBtn.addEventListener('click', () => {
@@ -125,20 +124,26 @@ function GameController() {
             turnKeeper.classList.add('turn-title');
             
             const displayName = activePlayer.name || activePlayer.identity;
-            turnKeeper.textContent = `${displayName}'s turn`;
+            turnKeeper.textContent = `${displayName}'s turn!`;
             turnElement.appendChild(turnKeeper);
         }
     };
 
     // Process player name form submission
     const startGame = () => {
+        const boardElement = document.querySelector('.board');
+        boardElement.classList.remove('disabled');
         const player1 = document.getElementById('p1-name').value.trim();
         const player2 = document.getElementById('p2-name').value.trim();
 
         players[0].name = player1;
         players[1].name = player2;
 
-        document.getElementById('player-entry').style.display = 'none';
+        const form = document.getElementById('player-entry');
+        form.style.display = 'none';
+
+        const turnKeeper = document.getElementById('turn-keeper');
+        turnKeeper.style.display = 'flex';
 
         updateTurnDisplay();
     }
@@ -158,13 +163,16 @@ function GameController() {
     }
 
     // Restart game, but keep player names (and eventually scores)
-    const restartGame = () => {
+    const startRound = () => {
         const newBoard = Grid();
         Object.assign(board, newBoard);
 
         activePlayer = players[0];
 
         printNewRound();
+        const boardElement = document.getElementById('board');
+        boardElement.classList.remove('disabled');
+
         updateTurnDisplay();
     }
 
@@ -173,16 +181,30 @@ function GameController() {
         players[0].name = '';
         players[1].name = '';
         players[0].score = 0;
-        players[1].name = 0;
+        players[1].score = 0;
 
         const boardElement = document.querySelector('.board');
-        boardElement.style.pointerEvents = 'auto';
+        boardElement.classList.add('disabled');
 
-        document.getElementById('player-entry').style.display = 'block';
-        document.getElementById('board').style.display = 'none';
+        const turnKeeper = document.getElementById('turn-keeper');
+        turnKeeper.innerHTML = '';
+        turnKeeper.style.display = 'none';
 
-        updateScoreDisplay();
-        restartGame();
+        const form = document.getElementById('player-entry');
+        form.reset();
+        form.style.display = 'grid';
+
+        const scoreKeeper = document.getElementById('score-keeper');
+        scoreKeeper.innerHTML = '';
+
+        const winElement = document.querySelector('.win-condition');
+        winElement.innerHTML = '';
+
+        const newBoard = Grid();
+        Object.assign(board, newBoard);
+
+        activePlayer = players[0];
+        printNewRound();
     }
 
     // Controls how player makes choice in the game
@@ -200,6 +222,10 @@ function GameController() {
 
         // Updates board with player's choice
         printNewRound();
+
+        // Prevents board from returning to default disabled state
+        const boardElement = document.getElementById('board');
+        boardElement.classList.remove('disabled');
 
         // Checks win conditions
         const gameStatus = checkGameStatus(board);
@@ -242,7 +268,11 @@ function GameController() {
     }
 
     const displayRoundWinner = (gameStatus) => {
+        const boardElement = document.getElementById('board');
+        boardElement.classList.add('disabled');
+
         const winElement = document.querySelector('.win-condition');
+        winElement.style.display = 'flex';
         winElement.innerHTML = '';
 
         const winDisplay = document.createElement('div');
@@ -258,11 +288,14 @@ function GameController() {
         }
 
         winElement.appendChild(winDisplay);
+        console.log("Disabling for round win")
     }
 
     const displayMatchWinner = (winner) => {
         const winElement = document.querySelector('.win-condition');
+        winElement.style.display = 'flex';
         winElement.innerHTML = '';
+        
 
         const winDisplay = document.createElement('div');
         winDisplay.textContent = `${winner.name || winner.identity} wins the match! 🏆`
@@ -271,6 +304,8 @@ function GameController() {
 
         const boardElement = document.querySelector('.board');
         boardElement.style.pointerEvents = 'none';
+
+        console.log("Disabling board for match win");
     }
 
     const initFormListener = () => {
@@ -291,7 +326,7 @@ function GameController() {
         printNewRound,
         playRound,
         initFormListener,
-        restartGame,
+        startRound,
         resetGame,
         updateTurnDisplay,
         updateScoreDisplay
